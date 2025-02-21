@@ -22,6 +22,7 @@
   },
   "dependencies": {
     "@types/fhir": "^0.0.41",
-    "axios": "^1.7.9"
+    "axios": "^1.7.9",
+    "clsx": "^2.1.1"
   }
 }

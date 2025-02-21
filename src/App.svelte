@@ -1,12 +1,16 @@
 <script lang="ts">
   import axios from "axios";
   import type { Patient } from "fhir/r4";
+  import clsx from "clsx";
 
   const fhirBaseUrl = "https://hapi.fhir.org/baseR4";
 
-  const fetchPatients = async () => {
+  let page = 0;
+  const fetchPatients = async (page: number) => {
     try {
-      const patientResponse = await axios.get(`${fhirBaseUrl}/Patient`);
+      const patientResponse = await axios.get(`${fhirBaseUrl}/Patient`, {
+        params: { _sort: "_lastUpdated", _count: 20, _offset: page * 20 },
+      });
       return patientResponse.data;
     } catch (error) {
       console.error("Error fetching patients:", error);
@@ -28,7 +32,7 @@
     Patients on the Server
   </h1>
 
-  {#await fetchPatients()}
+  {#await fetchPatients(page)}
     <p class="text-gray-600">Loading...</p>
   {:then patientBundle}
     {#if patientBundle.entry?.length}
@@ -65,4 +69,16 @@
       <p class="text-gray-600">No patients found.</p>
     {/if}
   {/await}
+  <div class="mt-4">
+    <button
+      class={clsx("p-2 text-white", {
+        "bg-black": page !== 0,
+        "bg-gray-300": page === 0,
+      })}
+      on:click={() => page--}
+      disabled={page === 0}>Previous</button
+    >
+    <button class="p-2 bg-black text-white" on:click={() => page++}>Next</button
+    >
+  </div>
 </main>
