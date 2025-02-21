@@ -21,6 +21,7 @@
     "vite": "^6.1.0"
   },
   "dependencies": {
+    "@types/fhir": "^0.0.41",
     "axios": "^1.7.9"
   }
 }
