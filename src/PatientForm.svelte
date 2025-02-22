@@ -174,7 +174,7 @@
         type="tel"
         class="border p-2 w-full rounded-md"
         required
-        pattern="[0-9]{10}"
+        pattern="\d\d\d\d\d\d\d\d\d\d"
         title="Phone number"
         placeholder="Enter phone number"
       />
