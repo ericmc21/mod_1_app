@@ -3,7 +3,7 @@
   import type { Patient } from "fhir/r4";
   export let id: string = "";
   const today = new Date().toISOString().split("T")[0];
-  let message: any | undefined = undefined;
+  let message: any;
   let loading = false;
   let patientResource: Patient;
 
@@ -12,7 +12,6 @@
   const handleSubmit = async (e: SubmitEvent) => {
     loading = true;
     e.preventDefault();
-    console.log({ firstName, lastName, birthDate, phoneNumber, gender });
 
     let fhirResource: Patient = {
       resourceType: "Patient",
@@ -69,7 +68,7 @@
 
   const loadPatient = async (id: string) => {
     const patientResponse = await fhirApi.get<Patient>(`/Patient/${id}`);
-    const patientResource = patientResponse.data;
+    patientResource = patientResponse.data;
     const name = patientResource.name?.[0];
 
     if (name?.given?.[0]) {
@@ -96,18 +95,16 @@
     return patientResource;
   };
 
-  let firstName: string;
+  let firstName: string = "";
   let lastName: string | undefined;
-  let birthDate: string;
+  let birthDate: string = "";
   let phoneNumber: string | undefined;
-  let gender: "other" | "male" | "female" | "unknown" | undefined = undefined;
+  let gender: "other" | "male" | "female" | "unknown" | "" = "";
 
   $: if (id) {
-    patientLoading = true;
-    loadPatient(id).then((resource) => {
-      patientResource = resource;
-      patientLoading = false;
-    });
+    (async () => {
+      patientResource = await loadPatient(id);
+    })();
   }
 </script>
 
@@ -150,7 +147,7 @@
         class="border p-2 w-full"
         required
       >
-        <option value={undefined} disabled>Please select...</option>
+        <option value="" disabled>Please select...</option>
         <option value="male">Male</option>
         <option value="female">Female</option>
         <option value="other">Other</option>
@@ -177,7 +174,7 @@
         type="tel"
         class="border p-2 w-full rounded-md"
         required
-        pattern="\d\d\d\d\d\d\d\d\d\d"
+        pattern="[0-9]{10}"
         title="Phone number"
         placeholder="Enter phone number"
       />
