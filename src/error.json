@@ -1,0 +1,14 @@
+{
+  "resourceType": "OperationOutcome",
+  "text": {
+    "status": "generated",
+    "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><h1>Operation Outcome</h1><table border=\"0\"><tr><td style=\"font-weight: bold;\">ERROR</td><td>[]</td><td>HAPI-0389: Failed to call access method: org.springframework.orm.jpa.JpaSystemException: Unable to perform afterTransactionCompletion callback: HSEARCH800024: Unable to index documents for indexing after transaction completion: HSEARCH700124: Indexing failure: Could not load codec 'Lucene95'. Did you forget to add lucene-backward-codecs.jar?.The following entities may not have been updated correctly in the index: [ResourceTable#46285433].</td></tr></table></div>"
+  },
+  "issue": [
+    {
+      "severity": "error",
+      "code": "processing",
+      "diagnostics": "HAPI-0389: Failed to call access method: org.springframework.orm.jpa.JpaSystemException: Unable to perform afterTransactionCompletion callback: HSEARCH800024: Unable to index documents for indexing after transaction completion: HSEARCH700124: Indexing failure: Could not load codec 'Lucene95'. Did you forget to add lucene-backward-codecs.jar?.\nThe following entities may not have been updated correctly in the index: [ResourceTable#46285433]."
+    }
+  ]
+}

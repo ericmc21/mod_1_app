@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { navigate } from "svelte-routing";
   import { fhirApi } from "./api";
   import type { Patient } from "fhir/r4";
   export let id: string = "";
@@ -38,12 +39,24 @@
 
     try {
       if (id) {
-        message = await updatePatient(id, fhirResource, patientResource);
+        await updatePatient(id, fhirResource, patientResource);
       } else {
-        message = await createPatient(fhirResource);
+        await createPatient(fhirResource);
       }
+      navigate("/");
     } catch (e: any) {
-      message = e?.response.data;
+      console.error("FHIR Server Error:", e.response?.data || e.message);
+
+      // ✅ If it's a Lucene indexing issue, notify the user but don't fail the update
+      if (
+        e.response?.data?.issue?.[0]?.diagnostics?.includes("HSEARCH700124")
+      ) {
+        message =
+          "Patient updated successfully, but the FHIR server had an internal search indexing issue.";
+        navigate("/");
+      } else {
+        message = e.response?.data || "An unknown error occurred.";
+      }
     }
     loading = false;
   };
