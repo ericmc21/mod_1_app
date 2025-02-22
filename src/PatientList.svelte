@@ -7,7 +7,7 @@
   const fetchPatients = async (page: number) => {
     try {
       const patientResponse = await fhirApi.get(`/Patient`, {
-        params: { _sort: "_lastUpdated", _count: 20, _offset: page * 20 },
+        params: { _sort: "-_lastUpdated", _count: 20, _offset: page * 20 },
       });
       return patientResponse.data;
     } catch (error) {
