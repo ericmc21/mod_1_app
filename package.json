@@ -12,6 +12,7 @@
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^5.0.3",
     "@tsconfig/svelte": "^5.0.4",
+    "@types/lodash.debounce": "^4.0.9",
     "autoprefixer": "^10.4.17",
     "postcss": "^8.4.35",
     "svelte": "^5.19.6",
@@ -24,6 +25,7 @@
     "@types/fhir": "^0.0.41",
     "axios": "^1.7.9",
     "clsx": "^2.1.1",
+    "lodash.debounce": "^4.0.8",
     "svelte-routing": "^2.13.0"
   }
 }

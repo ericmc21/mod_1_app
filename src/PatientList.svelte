@@ -2,12 +2,21 @@
   import type { Patient } from "fhir/r4";
   import clsx from "clsx";
   import { fhirApi } from "./api";
+  //@ts-ignore
+  import debounce from "lodash.debounce";
 
   let page = 0;
-  const fetchPatients = async (page: number) => {
+  let searchTerm: string = "";
+
+  const fetchPatients = async (page: number, searchTerm: string) => {
     try {
       const patientResponse = await fhirApi.get(`/Patient`, {
-        params: { _sort: "-_lastUpdated", _count: 20, _offset: page * 20 },
+        params: {
+          _sort: "-_lastUpdated",
+          _count: 20,
+          _offset: page * 20,
+          name: searchTerm,
+        },
       });
       return patientResponse.data;
     } catch (error) {
@@ -36,8 +45,13 @@
   <h1 class="text-2xl font-semibold mb-4 text-gray-700">
     Patients on the Server
   </h1>
+  <input
+    bind:value={searchTerm}
+    class="w-full border p-2"
+    placeholder="Search by name or phone number (exact)"
+  />
 
-  {#await fetchPatients(page)}
+  {#await fetchPatients(page, searchTerm)}
     <p class="text-gray-600">Loading...</p>
   {:then patientBundle}
     {#if patientBundle.entry?.length}
