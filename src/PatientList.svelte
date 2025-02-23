@@ -7,24 +7,57 @@
 
   let page = 0;
   let searchTerm: string = "";
+  let patientBundle: any = { entry: [] };
+  let loading = false;
 
-  const fetchPatients = async (page: number, searchTerm: string) => {
+  // ✅ Improved phone number detection
+  const isPhoneNumber = (searchTerm: string) => {
+    return /^[+\d\s-]{7,15}$/.test(searchTerm.trim()); // Allows numbers with spaces, +, or dashes
+  };
+
+  // ✅ Fetch Patients with correct FHIR parameters
+  const fetchPatients = async () => {
+    loading = true;
     try {
+      let searchParams: { telecom?: string; name?: string } = {};
+
+      if (searchTerm.trim()) {
+        if (isPhoneNumber(searchTerm)) {
+          searchParams.telecom = `${searchTerm.trim()}`;
+        } else {
+          searchParams.name = searchTerm.trim();
+        }
+      }
+
+      console.log("Fetching with params:", searchParams);
+
       const patientResponse = await fhirApi.get(`/Patient`, {
         params: {
           _sort: "-_lastUpdated",
           _count: 20,
           _offset: page * 20,
-          name: searchTerm,
+          ...searchParams,
         },
       });
-      return patientResponse.data;
+      patientBundle = patientResponse.data;
     } catch (error) {
       console.error("Error fetching patients:", error);
-      return { entry: [] };
+      patientBundle = { entry: [] };
     }
+    loading = false;
   };
 
+  // ✅ Reactive statement: Fetch when `searchTerm` or `page` changes
+  $: if (searchTerm !== undefined || page !== undefined) {
+    fetchPatients();
+  }
+
+  // ✅ Set `page = 0` when user types a new search term
+  const handleSearchInput = (event: Event) => {
+    searchTerm = (event.target as HTMLInputElement).value;
+    page = 0; // Reset page when a new search term is entered
+  };
+  // Helper function to format patient names
   const formatName = (resource: Patient) => {
     const nameElement = resource.name?.[0];
     const firstName = nameElement?.given?.join(" ") || "";
@@ -49,51 +82,48 @@
     bind:value={searchTerm}
     class="w-full border p-2"
     placeholder="Search by name or phone number (exact)"
+    on:input={handleSearchInput}
   />
 
-  {#await fetchPatients(page, searchTerm)}
+  {#if loading}
     <p class="text-gray-600">Loading...</p>
-  {:then patientBundle}
-    {#if patientBundle.entry?.length}
-      <div class="overflow-x-auto">
-        <table
-          class="w-full border-collapse border border-gray-300 min-w-[800px]"
-        >
-          <thead>
-            <tr class="bg-gray-200 text-left">
-              <th class="border border-gray-300 px-6 py-3">ID</th>
-              <th class="border border-gray-300 px-6 py-3">Name</th>
-              <th class="border border-gray-300 px-6 py-3">Gender</th>
-              <th class="border border-gray-300 px-6 py-3">Birth Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {#each patientBundle.entry as patient (patient.resource.id)}
-              <tr
-                on:click={() =>
-                  (window.location.href = `/patient/${patient?.resource?.id}`)}
-                class="border border-gray-300 hover:bg-gray-100 cursor-pointer"
+  {:else if patientBundle.entry?.length}
+    <!-- display table -->
+    <div class="overflow-x-auto">
+      <table
+        class="w-full border-collapse border border-gray-300 min-w-[800px]"
+      >
+        <thead>
+          <tr class="bg-gray-200 text-left">
+            <th class="border border-gray-300 px-6 py-3">ID</th>
+            <th class="border border-gray-300 px-6 py-3">Name</th>
+            <th class="border border-gray-300 px-6 py-3">Gender</th>
+            <th class="border border-gray-300 px-6 py-3">Birth Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {#each patientBundle.entry as patient (patient.resource.id)}
+            <tr
+              on:click={() =>
+                (window.location.href = `/patient/${patient?.resource?.id}`)}
+              class="border border-gray-300 hover:bg-gray-100 cursor-pointer"
+            >
+              <td class="border px-6 py-3">{patient?.resource?.id || "N/A"}</td>
+              <td class="border px-6 py-3">{formatName(patient?.resource)}</td>
+              <td class="border px-6 py-3 capitalize"
+                >{patient?.resource?.gender || "Unknown"}</td
               >
-                <td class="border px-6 py-3"
-                  >{patient?.resource?.id || "N/A"}</td
-                >
-                <td class="border px-6 py-3">{formatName(patient?.resource)}</td
-                >
-                <td class="border px-6 py-3 capitalize"
-                  >{patient?.resource?.gender || "Unknown"}</td
-                >
-                <td class="border px-6 py-3"
-                  >{patient?.resource?.birthDate || "Not available"}</td
-                >
-              </tr>
-            {/each}
-          </tbody>
-        </table>
-      </div>
-    {:else}
-      <p class="text-gray-600">No patients found.</p>
-    {/if}
-  {/await}
+              <td class="border px-6 py-3"
+                >{patient?.resource?.birthDate || "Not available"}</td
+              >
+            </tr>
+          {/each}
+        </tbody>
+      </table>
+    </div>
+  {:else}
+    <p class="text-gray-600">No patients found.</p>
+  {/if}
 
   <div class="mt-6 flex justify-center space-x-4">
     <button
