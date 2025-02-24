@@ -79,7 +79,11 @@
     return response.data;
   };
 
-  const loadPatient = async (id: string) => {
+  const loadPatient = async (id?: string) => {
+    if (!id) {
+      console.error("loadPatient called with an undefined or empty ID");
+      return;
+    }
     const patientResponse = await fhirApi.get<Patient>(`/Patient/${id}`);
     patientResource = patientResponse.data;
     const name = patientResource.name?.[0];
@@ -114,7 +118,7 @@
   let phoneNumber: string | undefined;
   let gender: "other" | "male" | "female" | "unknown" | "" = "";
 
-  $: if (id) {
+  $: if (id !== undefined && id !== "") {
     (async () => {
       patientResource = await loadPatient(id);
     })();

@@ -9,6 +9,7 @@
   let searchTerm: string = "";
   let patientBundle: any = { entry: [] };
   let loading = false;
+  let searchTimeout: number | undefined; // hold timeoute reference
 
   // ✅ Improved phone number detection
   const isPhoneNumber = (searchTerm: string) => {
@@ -39,7 +40,11 @@
           ...searchParams,
         },
       });
-      patientBundle = patientResponse.data;
+      if (!patientResponse.data || !patientResponse.data.entry) {
+        patientBundle = { entry: [] }; //  Prevents undefined error
+      } else {
+        patientBundle = patientResponse.data;
+      }
     } catch (error) {
       console.error("Error fetching patients:", error);
       patientBundle = { entry: [] };
@@ -47,15 +52,21 @@
     loading = false;
   };
 
-  // ✅ Reactive statement: Fetch when `searchTerm` or `page` changes
-  $: if (searchTerm !== undefined || page !== undefined) {
+  const debouncedFetchPatients = debounce(fetchPatients, 300);
+
+  let initialFetchDone = false; // Track if the first fetch has been done
+
+  $: if (!initialFetchDone) {
     fetchPatients();
+    initialFetchDone = true; // Prevents infinite loop
   }
 
   // ✅ Set `page = 0` when user types a new search term
   const handleSearchInput = (event: Event) => {
     searchTerm = (event.target as HTMLInputElement).value;
     page = 0; // Reset page when a new search term is entered
+
+    debouncedFetchPatients();
   };
   // Helper function to format patient names
   const formatName = (resource: Patient) => {
